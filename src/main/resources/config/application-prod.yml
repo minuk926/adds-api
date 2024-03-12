@@ -1,0 +1,111 @@
+#-----------------------------------------------------------------------
+#   prod 설정
+#-----------------------------------------------------------------------
+spring:
+  datasource:
+    hikari:
+      # 9 server
+      primary:
+        database: mysql
+        driver-class-name: org.mariadb.jdbc.Driver
+        # jdbc:mariadb://127.0.0.1:4407/mens?useUnicode=true&characterEncoding=utf-8&rewriteBatchedStatements=true&autoReconnect=true
+        jdbc-url: ENC(N7TRplIpBBUbXtSi8fx0wr92OdMgvp9Iw5tmaW7EUaH6ialiAWohx+rOEZx/j+OHFkJSrhYQElPIVe5r4d0tWDNREpgvKwxZRTGXhNdTMMUUHonkGKfB7bURxMfjuMSQEUdKicPZv+xB9eGlwcuPpgC7vaQuZM6WrUDP31+6qYboTUQKBK/7lg==)
+        username: ENC(wgnjrc4VB7R3I+OwMV+iXQ==)
+        password: ENC(+sXCmhmSV3Q/3KgOnmpnTQ==)
+        read-only: false
+      # multi-database
+      secondary:
+        database: oracle
+        driver-class-name: oracle.jdbc.OracleDriver
+        jdbc-url: jdbc:oracle:thin:@150.50.48.31:1521/ETISDDB
+        username: MOBELNOTI
+        password: wjswkrhwl12!@
+        read-only: false
+
+  devtools:
+    livereload:
+      enabled: false
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+logging:
+  level:
+    root: warn
+    org.apache.http: warn
+    io.netty: warn
+    reactor.netty: WARN
+    # webclient logging
+    reactor.netty.http.client: warn
+    #org.springframework.web.reactive.function.client.ExchangeFunctions: TRACE
+    org.springframework: warn
+    org.hibernate.validator.internal: WARN
+  file:
+    # 로그파일 위치
+    path: ${app.data.root.path}/mens/logs
+    name: ${app.name}
+
+# ==================================================================================================================
+# SQL logging lib setting
+# ==================================================================================================================
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
+
+app:
+  api-ip: 103.145.215.46
+  # 강제로 swagger-url을 지정해야 하는 경우만 선언
+  swagger-url: 'http://103.145.215.46:8081/${server.servlet.context-path:}/'
+  # Spring Security cors 설정 :: CorsConfiguration 설정 값
+  cors:
+    allowed-origins: http://localhost, http://${app.api-ip}, http://localhost:8082, http://${app.api-ip}:8082, https://ens.sisul.or.kr
+
+  data:
+    root:
+      path: /data
+  #---------------------------------------------------------------
+  # log 설정
+  # request:
+  #   custom-enabled | common-enabled | filter-enabled 중 1개만 활성화
+  #   --> 운영: common-enabled, 개발: custom-enabled 사용 권장
+  # response-enabled : 호출 결과 출력 - 운영시 false
+  # mdc : api 호출(서비스) 로그 기록
+  #   uris : api 호출 로그 제외 패턴
+  #---------------------------------------------------------------
+  log:
+    request:
+      common-enabled: true
+    response-enabled: false
+    # MDC logging trace 활성
+    mdc:
+      enabled: true
+
+  # slack
+  slack-webhook:
+    enabled: false
+    url: https://hooks.slack.com/services/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
+
+  contract:
+    # milisecond
+    connection:
+      timeout: 600000
+      readTimeout: 600000
+
+    kt:
+      # vpn 사용
+      #host: http://172.16.0.13:10210/ONLWeb
+      # 운영
+      host: http://172.16.11.182:10210/ONLWeb
+      api:
+        # 모바일페이지 : 본문자수신등록 callback url - 토큰인증확인 조회, 열람확인결과 전송
+        dp-callback-url: https://ens.sisul.or.kr/api/web/mbl/v1/kt/dpMblPage.do
+        me-callback-url: https://ens.sisul.or.kr/api/web/mbl/v1/kt/meMblPage.do
+
+        # 수신거부상태전송 : BC-AG-SN-014
+        refuse-rcv: http://${app.api-ip}:8081/api/ens/kt/v1/receive/refuse
+        # 수신동의상태전송 : BC-AG-SN-015
+        approve-rcv: http://${app.api-ip}:8081/api/ens/kt/v1/receive/approve

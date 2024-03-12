@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.xit.biz.sisul.mapper.IBizSisulMapper">
+
+    <select id="selectDeptInfoByTmplId" resultType="kr.xit.biz.ens.model.cmm.TmplatManage">
+      /** ens-sysul-mysql-mapper|selectDeptInfoByTmplId-템플릿ID로 부서정보 조회|seojh  */
+      SELECT tetm.signgu_code
+           , tetm.ffnlg_code
+           , tetm.try1
+           , tetm.post_dlvr_se
+           , tetm.post_tmplat_code
+        FROM tb_ens_tmplat_manage tetm
+       WHERE tmplat_id = #{tmplatId}
+    </select>
+
+    <insert id="insertCntcSndngMst">
+        /** ens-sysul-mysql-mapper|insertCntcSndngMst-연계발송마스터 생성|seojh  */
+        INSERT
+          INTO tb_cntc_sndng_mastr (
+            unity_sndng_mastr_id,	/* 통합발송마스터 id */
+            signgu_code,			/* 시군구코드 */
+            ffnlg_code,				/* 과태료코드 */
+            tmplat_id,				/* 템플릿ID */
+            sndng_ty_code,			/* 발송유형 코드 */
+            sndng_co,				/* 발송 건수 */
+            sndng_process_sttus,	/* 발송처리 상태 */
+            sndng_dt,				/* 발송일시 */
+            clos_dt,				/* 마감일시 */
+            regist_dt,
+            register
+        )
+        SELECT #{unitySndngMastrId}
+             , tetm.signgu_code
+             , tetm.ffnlg_code
+             , tetm.tmplat_id
+             , tetm.sndng_ty_code
+             , #{sndngCo}
+             , #{sndngProcessSttus}
+             , #{sndngDt}
+             , #{closDt}
+             , now()
+             , #{register}
+          FROM tb_ens_tmplat_manage tetm
+         WHERE tmplat_id = #{tmplatId}
+    </insert>
+
+    <insert id="insertCntcSndngDtl">
+        /** ens-sysul-mysql-mapper|insertCntcSndngDtl-연계발송상세 생성|seojh  */
+        INSERT
+          INTO tb_cntc_sndng_detail (
+            unity_sndng_detail_id,	/* 통합발송 상세ID */
+            unity_sndng_mastr_id,	/* 통합발송 마스터ID */
+            signgu_code,			/* 시군구 코드 */
+            ffnlg_code,				/* 과태료 코드 */
+            main_code,              /* 메인 코드 - 자료 식별 코드 */
+            tmplt_msg_data,         /* 템플릿 메시지 데이터 - 가변 항목 자료 */
+            mobile_page_cn,			/* 모바일 페이지 내용 */
+            use_instt_idntfc_id,    /* 이용 기관 식별 ID - 교통시설 운영처 제목 가변 */
+            regist_dt,
+            register
+        )
+        SELECT #{unitySndngDetailId}
+             , #{unitySndngMastrId}
+             , tetm.signgu_code
+             , tetm.ffnlg_code
+             , #{mainCode}
+             , #{tmpltMsgData}
+             , #{mobilePageCn}
+             , #{useInsttIdntfcId}
+             , now()
+             , #{register}
+          FROM tb_ens_tmplat_manage tetm
+         WHERE tmplat_id = #{tmplatId}
+    </insert>
+
+    <insert id="insertCi">
+        /** ens-sysul-mysql-mapper|insertCi-CI자료 생성|seojh  */
+        INSERT
+          INTO tb_ens_ci (
+            unity_sndng_detail_id,
+            ci,
+            result_cd,
+            message,
+            regist_dt,
+            register
+          ) VALUES (
+              #{unitySndngDetailId}
+            , NVL(#{ci1}, #{ci2})
+            , #{resultCd}
+            , #{message}
+            , now()
+            , #{register}
+          )
+    </insert>
+    <insert id="insertPostPlusJson">
+        /** ens-sysul-mysql-mapper|insertPostPlusJson-포스트 플러스 json 생성|seojh  */
+        INSERT
+          INTO tb_ens_post_plus_json(
+            unity_sndng_detail_id,
+            service_cd,
+            con_key,
+            sn,
+            master_cols,
+            master_rows,
+            detail_cols,
+            detail_rows,
+            regist_dt,
+            register
+          ) VALUES (
+              #{unitySndngDetailId}
+            , #{serviceCd}
+            , #{conKey}
+            , #{sn}
+            , #{masterCols}
+            , #{masterRows}
+            , #{detailCols}
+            , #{detailRows}
+            , now()
+            , #{register}
+          )
+    </insert>
+
+
+  <select id="selectSndngResultMaster" resultType="kr.xit.biz.sisul.model.SisulSndngResultDTO$RsltSisulResMstData">
+    /** ens-sysul-mysql-mapper|selectSndngResultMaster-발송결과정보 마스터 조회|julim  */
+    SELECT tesn.unity_sndng_mastr_id    /* 통합발송마스터 ID - 파일유일키 */
+         , tesn.sndng_se_code           /* 발송구분코드 */
+         , tesn.tmplat_id               /* 템플릿 ID */
+         , tesn.sndng_dt                /* 발송일시 */
+         , tesn.sndng_co                /* 발송건수 */
+         , tesn.sndng_process_sttus     /* 발송처리 상태 */
+      FROM tb_ens_sndng_mastr tesn
+     WHERE tesn.unity_sndng_mastr_id = #{unitySndngMastrId}
+  </select>
+
+  <select id="selectSndngResultDetails" resultType="kr.xit.biz.sisul.model.SisulSndngResultDTO$RsltSisulResDtlData">
+    /** ens-sysul-mysql-mapper|selectSndngResultDetails-발송결과정보 상세 조회|julim  */
+    SELECT tesn.unity_sndng_mastr_id    /* 통합발송마스터 ID - 파일유일키 */
+         , tcsnd.unity_sndng_detail_id  /* 통합발송상세 ID - 우편물 일련번호 */
+         , tesn.sndng_se_code           /* 발송구분코드 */
+         , tesn.tmplat_id               /* 템플릿 ID */
+         , tcsr.requst_dt               /* 발송일시 - sndngDt */
+         , tcsr.inqire_dt               /* 수신일시 - recvDt */
+         , tcsr.readng_dt               /* 열람일시 - readDt */
+         , tcsr.rgist_no                /* 등기번호 */
+         , tcsr.sndng_result_sttus      /* 발송결과상태 - resultCode */
+      FROM tb_ens_sndng_mastr tesn
+      JOIN tb_cntc_sndng_detail tcsnd
+        ON tesn.unity_sndng_mastr_id = tcsnd.unity_sndng_mastr_id
+      JOIN tb_cntc_sndng_result tcsr
+        ON tcsnd.unity_sndng_detail_id = tcsr.unity_sndng_detail_id
+     WHERE tesn.unity_sndng_mastr_id = #{unitySndngMastrId}
+       <if test="unitySndngDetailId != null and unitySndngDetailId != ''">
+       AND tcsr.unity_sndng_detail_id = #{unitySndngDetailId}
+       </if>
+  </select>
+
+  <select id="selectOhterResult" resultType="kr.xit.other.model.ElecnoticeDTO$Elecnoticedtl">
+    SELECT tcsm.unity_sndng_mastr_id as unitysndngmastrid
+         , tcsm.sndng_co as sndngco
+         , fn_get_code_nm('ETI007', tcsm.sndng_process_sttus) as sndngprocesssttus
+         , 'ens' as insuser
+         , date_format(tcsm.regist_dt, '%Y%m%d%H%i%S') as insdate
+         , 'ens' as upduser
+         , date_format(tcsm.updt_dt, '%Y%m%d%H%i%S') as upddate
+         , tcsm.sndng_dt as sndngdt
+         , fn_get_code_nm('ETI005', SUBSTRING(tcsm.tmplat_id, 5,1)) as sndngsecode
+         , tcsm.tmplat_id as tmplatid
+         , date_format(now(), '%Y%m%d%H%i%S') as searchdate
+         , '' as success
+         , tcsm.error_mssage as message
+         , tcsd.unity_sndng_detail_id as unitysndngdetailid
+         , '' as gojidepth
+         , SUBSTRING(tcsd.main_code, 1, 7)  AS taxnum1
+         , SUBSTRING(tcsd.main_code, 8, 8)  AS taxnum2
+         , SUBSTRING(tcsd.main_code, 16, 7) AS taxnum3
+         , SUBSTRING(tcsd.main_code, 23, 7) AS taxnum4
+         , '' as worker
+         , '' as serialno
+         , tcsr.requst_dt as recvdt
+         , tcsr.readng_dt as readdt
+         , fn_get_code_nm('ETI008', tcsr.sndng_result_sttus) as resultcode
+      FROM tb_cntc_sndng_mastr tcsm
+     INNER JOIN tb_cntc_sndng_detail tcsd ON (tcsm.unity_sndng_mastr_id = tcsd.unity_sndng_mastr_id)
+      LEFT OUTER JOIN tb_cntc_sndng_result tcsr ON (tcsd.unity_sndng_detail_id = tcsr.unity_sndng_detail_id)
+     WHERE str_to_date(tcsm.clos_dt, '%Y%m%d%H%i%S') > date_add(now(), interval -7 day)
+  </select>
+
+</mapper>

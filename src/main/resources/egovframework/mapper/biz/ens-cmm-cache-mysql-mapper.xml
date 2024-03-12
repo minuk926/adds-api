@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.xit.biz.cmm.mapper.ICmmEnsCacheMapper">
+
+  <select id="selectNiceCiInfo" resultType="kr.xit.biz.ens.model.nice.NiceCiDTO$NiceCiInfo">
+    /** ens-cmm-cache-mysql-mapper|selectNiceCiInfo-Nice인증정보조회|julim  */
+    SELECT signgu_code,             /* 시군구코드 */
+           ffnlg_code,              /* 과태료코드 */
+           client_id,               /* nice client id */
+           client_secret,           /* app security code */
+           product_id,              /* 상품 코드 */
+           access_token,            /* access token */
+           expires_in,              /* access token 만료일시(초)*/
+           token_type,              /* token type */
+           scope,                   /* token scope */
+           site_code,               /* 공개키 사이트 코드 */
+           key_version,             /* 공개키 버전 */
+           public_key,              /* 공개키 */
+           date_format(DATE_ADD(valid_dtim, INTERVAL -1 HOUR), '%Y%m%d%H%i%S') AS validDtim, /* 공개키 만료일시 */
+           cur_symkey_version,      /* 현재 대칭키 버전 */
+           date_format(DATE_ADD(cur_symkey_valid_dtim, INTERVAL -1 HOUR), '%Y%m%d%H%i%S') AS curSymkeyValidDtim,  /* 현재 대칭키 만료일시 */
+           cur_symkey_key,          /* 현재 대칭키 - key */
+           cur_symkey_iv,           /* 현재 대칭키 - iv */
+           cur_symkey_hmac_key,     /* 현재 대칭키 - hmac_key */
+           bef_symkey_version,      /* 이전 대칭키 버전 */
+           bef_symkey_valid_dtim,   /* 이전 대칭키 만료일시 */
+           bef_symkey_key,          /* 이전 대칭키 - key */
+           bef_symkey_iv,           /* 이전 대칭키 - iv */
+           bef_symkey_hmac_key      /* 이전 대칭키 - hmac_key */
+      FROM tb_cmm_nice_instn_crtf_info
+     WHERE signgu_code = #{signguCode}
+       AND ffnlg_code = #{ffnlgCode}
+  </select>
+
+  <select id="selectEnsRlaybsnmInfo" resultType="kr.xit.biz.ens.model.cmm.CmmEnsRlaybsnmDTO">
+    /** ens-cmm-cache-mysql-mapper|selectEnsRlaybsnmInfo-중계사업관리자정보조회|julim  */
+    SELECT signgu_code,             /* 시군구코드 */
+           ffnlg_code,              /* 과태료코드 */
+           signgu_nm,               /* 시군구 명 */
+           ffnlg_nm,                /* 과태료 명 */
+           kakao_client_id,         /* 카카오 Client ID */
+           kakao_product_cd,        /* 카카오 상품 코드 */
+           kakao_access_token,      /* 카카오 access token */
+           kakao_contract_uuid,     /* 카카오 contract uuid */
+           kt_client_id,            /* KT client id */
+           kt_client_tp,            /* KT client tp */
+           kt_scope,                /* KT scope */
+           kt_service_code,         /* KT service code */
+           IF(#{profile} = 'prod', kt_prod_client_id, kt_dev_client_id) AS ktSvcClientId,                   /* KT client service ID */
+           IF(#{profile} = 'prod', kt_prod_client_secret, kt_dev_client_secret) AS ktSvcClientSecret,       /* KT client service secret */
+           IF(#{profile} = 'prod', kt_prod_service_cerf_key, kt_dev_service_cerf_key) AS ktSvcCerfKey,      /* KT client service cerf key */
+           IF(#{profile} = 'prod', kt_prod_access_token, kt_dev_access_token) AS ktAccessToken,            /* KT access token */
+           IF(#{profile} = 'prod', kt_prod_token_jti, kt_dev_token_jti) AS ktTokenJti,            /* KT 토큰 식별자 */
+           CASE WHEN IFNULL(IF(#{profile} = 'prod', kt_prod_token_expires_in, kt_dev_token_expires_in), '') = ''
+                THEN NULL
+                ELSE DATE_ADD(updt_dt, INTERVAL IF(#{profile} = 'prod', kt_prod_token_expires_in, kt_dev_token_expires_in) - 86400 SECOND)
+           END AS ktTokenExpiresIn, /* KT 토큰 유효기간 : (7775999)(90일) */
+           epost_service_key,       /* epost service key */
+           pplus_api_key,           /* postplus api key */
+           sender_nm,               /* 발송인 명 */
+           sender_zip_no,           /* 발송인 우편 번호 */
+           sender_addr,             /* 발송인 주소 */
+           sender_detail_addr       /* 발송인 상세 주소 */
+      FROM tb_ens_rlaybsnm_manage
+     WHERE signgu_code = #{signguCode}
+       AND ffnlg_code = #{ffnlgCode}
+  </select>
+
+</mapper>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.xit.other.mapper.IOtherMapper">
+
+    <select id="selectElecnotice" resultType="kr.xit.other.model.ElecnoticeDTO$Elecnoticedtl">
+      /** other-oracle-mapper|selectElecnoticemst-전자고지 파일 외부연계 마스터 조회|jhseo  */
+      SELECT a.unitysndngmastrid
+           , a.sndngco
+           , a.sndngprocesssttus
+           , a.insuser
+           , a.insdate
+           , a.upduser
+           , a.upddate
+           , b.unitysndngmastrid
+           , b.unitysndngdetailid
+           , b.sndngdt
+           , b.tmplatid
+           , b.gojidepth
+           , b.taxnum1
+           , b.taxnum2
+           , b.taxnum3
+           , b.taxnum4
+           , b.worker
+           , b.serialno
+           , b.recvdt
+           , b.readdt
+           , b.resultcode
+        FROM elecnoticemst a
+        LEFT OUTER JOIN elecnoticedtl b ON (a.unitysndngmastrid = b.unitysndngmastrid)
+       WHERE 1=1
+         AND a.unitysndngmastrid = #{unitysndngmastrid}
+         AND b.unitysndngdetailid = #{unitysndngdetailid}
+    </select>
+
+    <insert id="saveElecnoticemst">
+        /** other-oracle-mapper|saveElecnoticemst-전자고지 파일 외부연계 마스터 Merge|jhseo  */
+        MERGE
+         INTO elecnoticemst a
+        USING dual
+           ON (a.unitysndngmastrid = #{unitysndngmastrid})
+         WHEN MATCHED THEN
+              UPDATE
+                 SET a.sndngprocesssttus = #{sndngprocesssttus}
+                   , a.upduser = #{upduser}
+                   , a.upddate = sysdate
+                   , a.success = #{success}
+                   , a.message = SUBSTRB(#{message}, 1, 100)
+         WHEN NOT MATCHED THEN
+              INSERT (a.unitysndngmastrid
+                    , a.sndngco
+                    , a.sndngprocesssttus
+                    , a.insuser
+                    , a.insdate
+                    , a.sndngdt
+                    , a.sndngsecode
+                    , a.tmplatid
+                    , a.searchdate
+                    , a.success
+                    , a.message
+              )
+              VALUES (#{unitysndngmastrid}
+                    , #{sndngco}
+                    , #{sndngprocesssttus}
+                    , #{insuser}
+                    , sysdate
+                    , TO_DATE(#{sndngdt},'YYYYMMDDHH24MISS')
+                    , #{sndngsecode}
+                    , #{tmplatid}
+                    , TO_DATE(#{searchdate},'YYYYMMDDHH24MISS')
+                    , #{success}
+                    , SUBSTRB(#{message}, 1, 100)
+              )
+
+    </insert>
+
+    <insert id="saveElecnoticedtl">
+        /** other-oracle-mapper|saveElecnoticedtl-전자고지 파일 외부연계 상세 Merge|jhseo  */
+        MERGE
+         INTO elecnoticedtl b
+        USING dual
+           ON (b.unitysndngmastrid = #{unitysndngmastrid} AND b.unitysndngdetailid = #{unitysndngdetailid})
+         WHEN MATCHED THEN
+              UPDATE
+                 SET b.readdt = TO_DATE(#{readdt},'YYYYMMDDHH24MISS')
+                   , b.resultcode = #{resultcode}
+                   , b.upduser = #{upduser}
+                   , b.upddate = sysdate
+         WHEN NOT MATCHED THEN
+              INSERT (b.unitysndngmastrid
+                    , b.unitysndngdetailid
+                    , b.sndngdt
+                    , b.tmplatid
+                    , b.gojidepth
+                    , b.taxnum1
+                    , b.taxnum2
+                    , b.taxnum3
+                    , b.taxnum4
+                    , b.worker
+                    , b.serialno
+                    , b.recvdt
+                    , b.readdt
+                    , b.resultcode
+                    , b.insuser
+                    , b.insdate
+              )
+              VALUES (#{unitysndngmastrid}
+                    , #{unitysndngdetailid}
+                    , TO_DATE(#{sndngdt},'YYYYMMDDHH24MISS')
+                    , #{tmplatid}
+                    , #{gojidepth}
+                    , #{taxnum1}
+                    , #{taxnum2}
+                    , #{taxnum3}
+                    , #{taxnum4}
+                    , #{worker}
+                    , #{serialno}
+                    , TO_DATE(#{recvdt},'YYYYMMDDHH24MISS')
+                    , TO_DATE(#{readdt},'YYYYMMDDHH24MISS')
+                    , #{resultcode}
+                    , #{insuser}
+                    , sysdate
+              )
+    </insert>
+
+</mapper>

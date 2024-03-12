@@ -1,0 +1,88 @@
+#-----------------------------------------------------------------------
+#   application 설정
+#-----------------------------------------------------------------------
+app:
+  contract:
+    # milisecond
+    connection:
+      timeout: 600000
+      readTimeout: 600000
+      thread:
+        # 동시 실행 스레드 개수
+        corePoolSize: 5
+        # 스레드 풀에서 사용할 수 있는 최대 개수
+        maxPoolSize: 10
+    kakao:
+      bulk-max-cnt: 10
+      host: https://docs-gw.kakaopay.com
+  #    token: dd394da7f66211eb9cbe46e139ceffc2
+  #    uuid: CON-41ef0535f67211ebbdedd2e6ed332381
+      api:
+        send: /v1/documents;POST
+        validToken: /v1/{document_binder_uuid}/tokens/{tokens};GET
+        modifyStatus: /v1/documents/{document_binder_uuid};POST
+        findStatus: /v1/documents/{document_binder_uuid}/status;GET
+        bulksend: /v1/documents/bulk;POST
+        bulkstatus: /v1/documents/bulk/status;POST
+    nice:
+      host: https://svc.niceapi.co.kr:22001
+  #    signgu-code: 11000
+  #    ffnlg-code: 11
+  #    client-id: 6c3eb1ff-530d-458a-9a6e-e02e3346f679
+  #    client-secret: 960f204ec45bb312b7ad2d6b54b984d9c353b8
+  #    product-id: 2101466024
+      api:
+        generate-token: /digital/niceid/oauth/oauth/token
+        revoke-token: /digital/niceid/oauth/oauth/token/revokeById
+        publickey: /digital/niceid/api/v1.0/common/crypto/publickey
+        symmetrickey: /digital/niceid/api/v1.0/common/crypto/symmetrickey
+        ci: /digital/niceid/cert/v1.0/ipin/addinfo/ci
+    kt:
+      # vpn 사용
+      host: http://172.16.0.13:10210/ONLWeb
+      # 운영
+      #host: http://172.16.11.182:10210/ONLWeb
+      api:
+        # 토큰발행
+        generate-token: /oauth/token
+        # 본문자수신등록 : BC-AG-SN-002
+        main-send: /api/message/main/send
+        # 토큰인증확인조회 : BC-AG-SN-008
+        cfm-token: /api/message/token
+        # 토큰열람확인결과전송 : BC-AG-SN-009
+        read-token: /api/message/read
+        # 사전/본 문자 발송/수신 결과 전송 : BC-AG-SN-010
+        result-message: /api/ag/message/result
+
+        # 사전문자수신등록 : BC-AG-SN-001
+        before-send: /api/message/before/send
+        # 수신거부등록 : BC-AG-SN-007
+        blacklist: /api/blacklist
+        # 백오피스발송통계연계조회 : BC-AG-SN-011
+        send-sttc: /api/sndsttc
+        # 백오피스발송결과연계조회 : BC-AG-SN-012
+        send-sttcdtl: /api/sndsttcdtl
+        # whitelist등록 : BC-AG-SN-013
+        whitelist: /api/whitelist
+        # 유통증명서발급처리 : BC-AG-SM-001
+        cerf-acmd: /api/message/acmdcerf
+        # 기관정산화면연계토큰인증 : BC-AG-SM-002
+        exca-token: /api/auth/excatoken
+        # 정산연계자료조회 : BC-AG-EC-001
+        exca: /api/auth/exca
+        # 전자문서유통정보수치조회 : BC-AG-HS-001
+        info-acmd: /api/acmdinfo
+        # 전자문서유통정보수치확인서 발급처리 : BC-AG-HS-002
+        cfm-acmd: /api/acmdinfocfm
+
+    pplus:
+      host: https://t.postplus.co.kr
+      api:
+        # 우편 제작 접수
+        accept: /po/api/postplusPstMsrApi.do
+        # 우편 제작 상태 조회
+        status: /po/api/postplusPstStatusApi.do
+    epost:
+      host: http://openapi.epost.go.kr
+      api:
+        postTrackInfo: /trace/retrieveLongitudinalCombinedService/retrieveLongitudinalCombinedService/getLongitudinalCombinedList

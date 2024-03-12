@@ -1,0 +1,4 @@
+[submodule "xit-mens-core"]
+	path = xit-mens-core
+	url = https://github.com/minuk926/xit-mens-core.git
+	branch = main

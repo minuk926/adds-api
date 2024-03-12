@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.xit.core.biz.mapper.IAuthApiMapper">
+  <!-- 일반 로그인 -->
+  <select id="actionLogin" resultType="egovframework.com.cmm.model.LoginVO">
+    <if test="userSe = 'USR'">
+      /** auth-mysql-mapper|actionLogin-로그인|julim */
+      SELECT user_id AS id
+           , user_nm AS name
+           , password
+           , ihidnum
+           , email_adres AS email
+           , 'USR' AS userSe
+           , orgnzt_id
+           , esntl_id
+      FROM xit_user_info
+      WHERE user_id = #{id}
+      AND password = #{password}
+      AND user_sttus_code = 'P'
+
+    </if>
+  </select>
+
+</mapper>

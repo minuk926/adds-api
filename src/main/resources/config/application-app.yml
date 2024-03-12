@@ -1,0 +1,44 @@
+#-----------------------------------------------------------------------
+#   application 설정
+#-----------------------------------------------------------------------
+
+app:
+  #---------------------------------------------------------------
+  # log 설정
+  # request:
+  #   custom-enabled | common-enabled | filter-enabled 중 1개만 활성화
+  #   --> 운영: common-enabled, 개발: custom-enabled 사용 권장
+  # response-enabled : 호출 결과 출력 - 운영시 false
+  # mdc : api 호출(서비스) 로그 기록
+  #   uris : api 호출 로그 제외 패턴
+  #---------------------------------------------------------------
+  log:
+    request:
+      # exclude pattern : CommonsRequestLoggingFilter && LoggingFilter 적용
+      exclude-patterns: '/swagger-ui/(.*), /api-docs/(.*), /favicon.ico'
+      custom-enabled: false
+      # CommonsRequestLoggingFilter 사용 parameter 로그 출력
+      common-enabled: false
+      # Filter를 사용한 로그 출력
+      filter-enabled: false
+    response-enabled: false
+    mdc:
+      enabled: true
+      exclude-patterns: '/api/kakao/(.*), /api/v1/ens/sendBulks(.*)'
+
+  # slack
+  slack-webhook:
+    enabled: false
+    url: https://hooks.slack.com/services/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
+
+  ssh:
+    host: 192.168.200.52
+    port: 22
+    id: administrator
+    passwd: 1q2w3e4r5t!
+    sg:
+      root-path: /SMSImage
+      ens-path: /ENSData
+      rcv: /
+      backup: /backup
+      err: /err

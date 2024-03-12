@@ -1,0 +1,92 @@
+#-----------------------------------------------------------------------
+#
+#   egovframework 설정
+#   api 공통 설정
+#-----------------------------------------------------------------------
+Globals:
+  # DB서버 타입(hsql,mysql,oracle,altibase,tibero) - datasource 및 sqlMap 파일 지정에 사용됨
+  DbType: mysql
+
+  # MainPage Setting
+  MainPage: /cmm/main/mainPage.do
+
+#server.servlet.context-path=/sht_boot_web
+server:
+  port: 8081
+  error:
+    whitelabel:
+      enabled: false
+app:
+  name: mens-api
+  # springdoc url 정보
+  desc: 모바일 전자고지 Rest API
+  data:
+    root:
+      path: /data
+  file:
+    cmm:
+      temp-path: ${app.data.root.path}/temp
+      upload:
+        root: ${app.data.root.path}
+        #      root: /data
+        # E-GREEN 우편 발송
+        post: /post/rcv/
+
+spring:
+  main:
+    # 순환참조 에러 무시
+    allow-circular-references: true
+  pid:
+    file: ${app.data.root.path}/${app.name}.pid
+  profiles:
+    active: '@springProfilesActive@'
+
+    # core의 application-common.yml과 application-auth.yml include
+    include:
+      - https
+      - common
+      - auth
+      - app
+      - ens
+
+  batch:
+    jdbc:
+      initialize-schema: NEVER #NEVER|ALWAYS
+      # JPA does not support custom isolation levels, so locks may not be taken when launching Jobs.
+      # To silence this warning, set 'spring.batch.jdbc.isolation-level-for-create' to 'default'.
+      isolation-level-for-create: default
+    job:
+      enabled: false
+
+  #-----------------------------------------------------------------
+  # xit framework 설정
+  #-----------------------------------------------------------------
+  datasource:
+    #type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      primary:
+        pool-name: xit-maria-pool
+        auto-commit: false
+        # 인프라의 적용된 connection time limit보다 작아야함
+        validation-timeout: 300000
+        max-lifetime: 1800000
+        maximum-pool-size: 15
+        minimum-idle: 5
+        #transaction-isolation: TRANSACTION_READ_UNCOMMITTED
+        data-source-properties:
+          rewriteBatchedStatements: true
+
+      secondary:
+        pool-name: xit-oracle-pool
+        auto-commit: false
+        # 인프라의 적용된 connection time limit보다 작아야함
+        max-lifetime: 1800000
+        maximum-pool-size: 15
+        minimum-idle: 5
+#        transaction-isolation: TRANSACTION_READ_UNCOMMITTED
+        data-source-properties:
+          rewriteBatchedStatements: true
+
+logging:
+  level:
+    root: error

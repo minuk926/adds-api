@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kr.xit.core.biz.mapper.IApiLoggingMapper">
+
+	  <insert id="saveApiLogging" parameterType="kr.xit.core.biz.model.LoggingDTO">
+      /** logging-mysql-mapper|saveApiLogging|julim  */
+      INSERT INTO tb_cmm_api_log (
+          request_id
+          , system_id
+          , req_system_id
+          , method
+          , uri
+          , param
+          , ip
+          , access_token
+          , session_id
+          , success
+          , response
+          , message
+          , regist_dt
+          , regist_id
+      ) VALUES (
+        #{requestId}
+        , #{systemId}
+        , #{reqSystemId}
+        , #{method}
+        , #{uri}
+        , #{param}
+        , #{ip}
+        , #{accessToken}
+        , #{sessionId}
+        , #{success}
+        , #{response}
+        , #{message}
+        , now(3)
+        , #{registId}
+      )
+	  </insert>
+
+    <update id="updateApiLogging" parameterType="kr.xit.core.biz.model.LoggingDTO">
+        /** logging-mysql-mapper|updateLogging|julim  */
+        UPDATE tb_cmm_api_log
+           SET success = #{success}
+             , response = #{response}
+             , message = #{message}
+             , updt_dt = now(3)
+             , updt_id = #{updtId}
+         WHERE request_id = #{requestId}
+    </update>
+
+    <select id="selectApiLogging" resultType="kr.xit.core.biz.model.LoggingDTO">
+        /** logging-mysql-mapper|selectApiLogging|julim  */
+        SELECT request_id
+             , system_id
+             , req_system_id
+             , method
+             , uri
+             , param
+             , ip
+             , access_token
+             , session_id
+             , regist_dt
+             , regist_id
+          FROM tb_cmm_api_log
+        <where>
+           <if test='requestId != null and requestId != ""'>
+           AND request_id = #{requestId}
+           </if>
+           <if test='systemId != null and systemId != ""'>
+           AND system_id = #{systemId}
+           </if>
+           <if test='uri != null and uri != ""'>
+           AND uri LIKE CONCAT('%', #{url}, '%')
+           </if>
+        </where>
+
+    </select>
+</mapper>

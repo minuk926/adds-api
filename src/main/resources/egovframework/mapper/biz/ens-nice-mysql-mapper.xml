@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.xit.biz.nice.mapper.IBizNiceCiMapper">
+
+  <update id="updateNiceCrtfToken" parameterType="kr.xit.biz.ens.model.nice.NiceCiDTO$NiceCiInfo">
+    /** ens-cmm-mysql-mapper|updateNiceCrtfToken-Nice token 정보 갱신|julim  */
+    UPDATE tb_cmm_nice_instn_crtf_info
+       SET access_token = #{accessToken},
+           token_type = #{tokenType},
+           expires_in = #{expiresIn},
+           scope = #{scope},
+           updt_dt = now(),
+           updusr = 'api-biz'
+     WHERE signgu_code = #{signguCode}
+       AND ffnlg_code = #{ffnlgCode}
+  </update>
+
+  <update id="updateNiceCrtfPublickey" parameterType="kr.xit.biz.ens.model.nice.NiceCiDTO$NiceCiInfo">
+    /** ens-cmm-mysql-mapper|updateNiceCrtfPublickey-Nice publickey 인증정보 갱신|julim  */
+    UPDATE tb_cmm_nice_instn_crtf_info
+       SET site_code = #{siteCode},
+           key_version = #{keyVersion},
+           public_key = #{publicKey},
+           valid_dtim = #{validDtim},
+           updt_dt = now(),
+           updusr = 'api-biz'
+     WHERE signgu_code = #{signguCode}
+       AND ffnlg_code = #{ffnlgCode}
+  </update>
+
+  <update id="updateNiceCrtfSymkey" parameterType="kr.xit.biz.ens.model.nice.NiceCiDTO$NiceCiInfo">
+    /** ens-cmm-mysql-mapper|updateNiceCrtfSymkey-Nice symkey 인증정보 갱신|julim  */
+    UPDATE tb_cmm_nice_instn_crtf_info
+       SET cur_symkey_version = #{curSymkeyVersion},
+           cur_symkey_valid_dtim = #{curSymkeyValidDtim},
+           cur_symkey_key = #{curSymkeyKey},
+           cur_symkey_iv = #{curSymkeyIv},
+           cur_symkey_hmac_key = #{curSymkeyHmacKey},
+           bef_symkey_version = #{befSymkeyVersion},
+           bef_symkey_valid_dtim = #{befSymkeyValidDtim},
+           bef_symkey_key = #{befSymkeyKey},
+           bef_symkey_iv = #{befSymkeyIv},
+           bef_symkey_hmac_key = #{befSymkeyHmacKey},
+           updt_dt = now(),
+           updusr = 'api-biz'
+     WHERE signgu_code = #{signguCode}
+       AND ffnlg_code = #{ffnlgCode}
+  </update>
+
+</mapper>

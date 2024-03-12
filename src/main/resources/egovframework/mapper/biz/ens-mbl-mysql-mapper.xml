@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.xit.biz.mbl.mapper.IMobilePageMapper">
+
+  <select id="selectKkoMobilePage" resultType="kr.xit.biz.mbl.model.MobilePageDTO$MobilePageManage">
+    /** ens-mbl-mysql-mapper|selectKkoMobilePage-카카오 모바일 페이지 콘텐트 조회|julim  */
+    SELECT tempm.sndng_detail_id
+         , tempm.sndng_se_code
+         , tempm.mobile_page_cn
+         , tekmd.signgu_code
+         , tekmd.ffnlg_code
+      FROM tb_ens_kakao_my_doc tekmd
+      JOIN tb_ens_mobile_page_manage tempm
+        ON tekmd.sndng_detail_id = tempm.sndng_detail_id
+     WHERE tekmd.unity_sndng_detail_id = #{external_document_uuid}
+       AND tekmd.document_binder_uuid = #{document_binder_uuid}
+  </select>
+
+  <select id="selectKtMobilePage" resultType="kr.xit.biz.mbl.model.MobilePageDTO$MobilePageManage">
+    /** ens-mbl-mysql-mapper|selectKtMobilePage-KT 모바일 페이지 콘텐트 조회|julim  */
+    SELECT tempm.sndng_detail_id
+         , tempm.sndng_se_code
+         , tempm.mobile_page_cn
+      FROM tb_ens_kt_bc_detail tekbd
+      JOIN tb_ens_mobile_page_manage tempm
+        ON tekbd.sndng_detail_id = tempm.sndng_detail_id
+     WHERE tekbd.unity_sndng_detail_id = #{srcKey}
+  </select>
+
+</mapper>

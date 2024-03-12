@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.xit.biz.kt.mapper.IBizKtMmsMapper">
+
+  <update id="updateRlaybsnmKtInfo" parameterType="kr.xit.biz.ens.model.cmm.CmmEnsRlaybsnmDTO">
+    /** ens-kt-mysql-mapper|updateRlaybsnmKtInfo-kt token 정보 갱신|julim  */
+    UPDATE tb_ens_rlaybsnm_manage
+       SET kt_scope = #{ktScope},
+           <choose>
+             <when test="profile eq 'prod'">
+               kt_prod_access_token = #{ktAccessToken},
+               kt_prod_token_expires_in = #{ktTokenExpiresIn},
+               kt_prod_token_jti = #{ktTokenJti},
+             </when>
+             <otherwise>
+               kt_dev_access_token = #{ktAccessToken},
+               kt_dev_token_expires_in = #{ktTokenExpiresIn},
+               kt_dev_token_jti = #{ktTokenJti},
+             </otherwise>
+           </choose>
+           updt_dt = now(),
+           updusr = 'api-biz'
+     WHERE signgu_code = #{signguCode}
+       AND ffnlg_code = #{ffnlgCode}
+  </update>
+
+  <update id="updateKtBcDtl" parameterType="kr.xit.biz.ens.model.kt.KtMmsSendDTO$KtMsgRsltReqData">
+      /** ens-kt-mysql-mapper|updateKtBcDtl-kt 메세지 수신결과 상세 반영|julim  */
+      UPDATE tb_ens_kt_bc_detail
+         SET mms_sndg_rslt_sqno = #{mmsSndgRsltSqno}                /* MMS 발송 결과 상태 순번 - 1:수신시, 2:발송시*/
+           , prcs_dt = #{prcsDt}                                    /* 처리일자 */
+           , mbl_bzowr_dvcd = #{mblBzowrDvcd}                       /* 모바일 사업자 구분 : 01:KT, 02:SKT, 03:LGT */
+           , rl_mms_sndg_telno = #{rlMmsSndgTelno}                  /* 실제 발송 번호 */
+           , mms_sndg_rslt_dvcd = #{mmsSndgRsltDvcd}                /* 발송결과코드 */
+           , mms_sndg_rslt_dvcd_msg = #{mmsSndgRsltDvcdMsg}         /* 발송결과코드 메세지 */
+           , mms_sndg_tmst = IFNULL(#{mmsSndgTmst}, mms_sndg_tmst)  /* 발송 타임 스탬프 */
+           , mms_rcv_tmst = IFNULL(#{mmsRcvTmst}, mms_rcv_tmst)     /* 수신 타임 스탬프 */
+           , mms_rdg_tmst = IFNULL(#{mmsRdgTmst}, mms_rdg_tmst)     /* 열람 타임 스탬프 */
+           , updt_dt = NOW()
+           , updusr = 'api_inbound'
+       WHERE unity_sndng_detail_id = #{srcKey}
+  </update>
+
+  <insert id="saveKtCntcSndngResult">
+
+    /** ens-mysql-mapper|saveCntcSndngResult-연계발송결과반영|julim  */
+    <selectKey keyProperty="signguCode,ffnlgCode,sndngSeCode" resultType="hashmap" order="BEFORE">
+      SELECT tesn.signgu_code AS signguCode
+           , tesn.ffnlg_code AS ffnlgCode
+           , tesn.sndng_se_code AS sndngSeCode
+      FROM tb_ens_sndng_mastr tesn
+      JOIN tb_cntc_sndng_detail tcsnd
+        ON tesn.unity_sndng_mastr_id = tcsnd.unity_sndng_mastr_id
+     WHERE tcsnd.unity_sndng_detail_id = #{srcKey}
+    </selectKey>
+    INSERT
+      INTO tb_cntc_sndng_result (
+        unity_sndng_detail_id,		/* 통합 발송 상세 ID*/
+        sndng_se_code,						/* 발송구분코드 */
+        signgu_code,							/* 시군구코드 */
+        ffnlg_code,								/* 과태료코드 */
+        sndng_result_sttus,
+        requst_dt,								/* 송신(요청) 일시 */
+        inqire_dt,								/* 수신(조회) 일시 */
+        readng_dt,								/* 최초열람일시 */
+        error_cn,									/* 에러내용 */
+        regist_dt,
+        register
+      ) VALUES (
+        #{srcKey}
+        , #{sndngSeCode}				/* 발송구분코드 - KAKAO-MY-DOC|KT-BC */
+        , #{signguCode}					/* 시군구코드 */
+        , #{ffnlgCode}					/* 과태료코드 */
+        , #{mmsSndgRsltDvcd}
+        , #{mmsSndgTmst}		    /* 송신(요청) 일시 */
+        , #{mmsRcvTmst}		      /* 수신(조회) 일시 */
+        , #{mmsRdgTmst}		      /* 최초열람일시 */
+        , #{mmsSndgRsltDvcdMsg}	/* 에러내용 */
+        , now()
+        , 'batch'
+      )
+      ON DUPLICATE KEY UPDATE
+        sndng_result_sttus = IFNULL(#{mmsSndgRsltDvcd}, sndng_result_sttus)
+        , requst_dt = IFNULL(#{mmsSndgTmst}, requst_dt)   /* 송신(요청) 일시 */
+        , inqire_dt =	IFNULL(#{mmsRcvTmst}, inqire_dt)		/* 수신(조회) 일시 */
+        , readng_dt =	IFNULL(#{mmsRdgTmst}, readng_dt)		/* 최초열람일시 */
+        , error_cn = IFNULL(#{mmsSndgRsltDvcdMsg}, error_cn)
+        , updt_dt = now()
+        , updusr = 'batch'
+  </insert>
+
+</mapper>

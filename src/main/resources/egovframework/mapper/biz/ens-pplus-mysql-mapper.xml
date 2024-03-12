@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="kr.xit.ens.pplus.mapper.IPplusMapper">
+
+  <select id="selectPostPlusSendTgts" resultType="kr.xit.biz.ens.model.pplus.PplusDTO$BatchAcceptRequest">
+    /** ens-pplus-mapper|selectPostPlusSendTgts-Post Plus 발송 대상 목록 조회|julim  */
+    SELECT tesm.unity_sndng_mastr_id
+         , tesm.sndng_mastr_id
+         , CASE WHEN tesm.try_seq = tesm.try_cnt THEN 'send-ok'
+                ELSE concat('sending', try_seq)
+           END AS sndngProcessSttus
+         , tepp.sndng_detail_id
+         , tepp.unity_sndng_detail_id
+         , tepp.signgu_code
+         , tepp.ffnlg_code
+         , tepp.service_cd
+         , tepp.con_key
+         , teppj.master_cols
+         , teppj.master_rows
+         , teppj.detail_cols
+         , teppj.detail_rows
+      FROM tb_ens_sndng_mastr tesm
+      JOIN tb_ens_post_plus tepp
+        ON tesm.sndng_mastr_id=tepp.sndng_mastr_id
+       AND tesm.signgu_code = tepp.signgu_code
+       AND tesm.ffnlg_code = tepp.ffnlg_code
+      JOIN tb_ens_post_plus_json teppj
+        ON tepp.unity_sndng_detail_id = teppj.unity_sndng_detail_id
+       AND tepp.con_key = teppj.con_key
+       AND tepp.sn = teppj.sn
+     WHERE tepp.sndng_mastr_id  = #{sndngMastrId}
+       AND tesm.signgu_code = #{signguCode}
+       AND tesm.ffnlg_code = #{ffnlgCode}
+     ORDER BY teppj.sn
+  </select>
+
+</mapper>

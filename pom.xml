@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>kr.xit</groupId>
+    <artifactId>adds-api</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+    <name>adds-api</name>
+    <description>Accidental Drug Disposal support System API</description>
+
+    <properties>
+        <spring.boot.version>2.7.12</spring.boot.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <spring.maven.artifact.version>5.3.20</spring.maven.artifact.version>
+        <org.egovframe.rte.version>4.2.0</org.egovframe.rte.version>
+        <lombok.version>1.18.28</lombok.version>
+        <logback.version>1.2.11</logback.version>
+        <!-- proguard -->
+        <proguard-plugin-version>2.6.0</proguard-plugin-version> <!-- 2.5.3 / 2.6.0 -->
+        <proguard-base-version>7.3.2</proguard-base-version> <!-- 7.2.2 / 7.3.1 / 7.3.2 -->
+        <proguard-core-version>9.0.10</proguard-core-version> <!-- 9.0.10 -->
+        <!-- excel poi -->
+        <apache.poi.version>5.1.0</apache.poi.version> <!-- 4.1.2 -->
+        <maven.test.skip>true</maven.test.skip>
+        <project.encoding>UTF-8</project.encoding>
+        <apache.tomcat.version>9.0.78</apache.tomcat.version>
+        <servlet-api.version>3.1.0</servlet-api.version>
+    </properties>
+
+    <!-- spring Boot Parent 설정 -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.12</version>
+    </parent>
+
+    <dependencies>
+        <dependency>
+            <groupId>kr.xit</groupId>
+            <artifactId>xit-mens-core</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.tomcat.embed</groupId>
+                    <artifactId>tomcat-embed-core</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>com.oracle</groupId>
+            <artifactId>ojdbc6</artifactId>
+            <version>11.2.0.3</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/ojdbc6.jar</systemPath>
+        </dependency>
+
+    </dependencies>
+
+
+    <build>
+        <defaultGoal>install</defaultGoal>
+        <directory>${basedir}/target</directory>
+        <finalName>${project.name}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>*</include>
+                    <include>static/**/*</include>
+                    <include>egovframework/**/*</include>
+                    <include>config/application.yml</include>
+                    <include>config/application-app.yml</include>
+                    <include>config/application-ens*</include>
+                    <include>config/application-jpa.yml</include>
+                    <include>config/application-${env}.yml</include>
+                </includes>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+        <plugins>
+            <!-- dependency 추가 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <!-- dependency jar 파일명 -->
+                    <!--finalName>${project.name}-${project.version}</finalName-->
+                    <!-- 기본생성 jar와 dependency jar 가 포함된 각각 파일 생성-->
+                    <appendAssemblyId>false</appendAssemblyId>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- spring-boot-maven-plugin : multi 프로젝트 이므로 mainClass 지정 필요 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.7.12</version>
+                <configuration>
+                    <executable>true</executable>
+                    <mainClass>kr.xit.EnsApiApplication</mainClass>
+                    <!-- 외부jar import -->
+                    <includeSystemScope>true</includeSystemScope>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- default : local configuration -->
+        <profile>
+            <id>local</id>
+            <properties>
+                <env>local</env>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+
+        <!-- dev configuration -->
+        <profile>
+            <id>dev</id>
+            <properties>
+                <env>dev</env>
+            </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>
+
+        <!-- prod configuration -->
+        <profile>
+            <id>prod</id>
+            <properties>
+                <env>prod</env>
+            </properties>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+        </profile>
+    </profiles>
+</project>

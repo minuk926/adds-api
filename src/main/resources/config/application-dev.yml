@@ -1,0 +1,103 @@
+#-----------------------------------------------------------------------
+#   dev 설정
+#-----------------------------------------------------------------------
+spring:
+  datasource:
+    hikari:
+      # 9 server
+      primary:
+        database: mysql
+        driver-class-name: org.mariadb.jdbc.Driver
+        jdbc-url: jdbc:mariadb://211.119.124.9:4407/mens?useUnicode=true&characterEncoding=utf-8&rewriteBatchedStatements=true&autoReconnect=true
+        username: root
+        password: xit1807
+        read-only: false
+
+      # multi-database
+      #secondary:
+
+  devtools:
+    livereload:
+      enabled: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+
+logging:
+  level:
+    root: debug
+    org.apache.http: warn
+    io.netty: warn
+    reactor.netty: WARN
+    # webclient logging
+    reactor.netty.http.client: DEBUG
+    #org.springframework.web.reactive.function.client.ExchangeFunctions: TRACE
+    org.springframework: warn
+    org.hibernate.validator.internal: WARN
+  file:
+    # 로그파일 위치
+    path: ${app.data.root.path}/mens/logs
+    name: ${app.name}
+
+# ==================================================================================================================
+# SQL logging lib setting
+# ==================================================================================================================
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
+
+app:
+  api-ip: 211.119.124.9
+  # 강제로 swagger-url을 지정해야 하는 경우만 선언
+  #swagger-url: 'http://localhost:${server.port}${server.servlet.context-path:}/'
+  # Spring Security cors 설정 :: CorsConfiguration 설정 값
+  cors:
+    allowed-origins: http://localhost:8080, http://${app.api-ip}:8080, http://localhost:8082, http://${app.api-ip}:8082
+
+  data:
+    root:
+      path: /data
+
+  #---------------------------------------------------------------
+  # log 설정
+  # request:
+  #   custom-enabled | common-enabled | filter-enabled 중 1개만 활성화
+  #   --> 운영: common-enabled, 개발: custom-enabled 사용 권장
+  # response-enabled : 호출 결과 출력 - 운영시 false
+  # mdc : api 호출(서비스) 로그 기록
+  #   uris : api 호출 로그 제외 패턴
+  #---------------------------------------------------------------
+  log:
+    request:
+      custom-enabled: true
+    response-enabled: true
+    # MDC logging trace 활성
+    mdc:
+      enabled: true
+
+  # slack
+  slack-webhook:
+    enabled: false
+    url: https://hooks.slack.com/services/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
+
+  contract:
+    # milisecond
+    connection:
+      timeout: 60000
+      readTimeout: 60000
+
+    kt:
+      host: http://211.43.10.163:10210/ONLWeb
+      api:
+        # 모바일페이지 : 본문자수신등록 callback url - 토큰인증확인 조회, 열람확인결과 전송
+        dp-callback-url: http://${app.api-ip}:8081/api/biz/mbl/v1/kt/dpMblPage
+        me-callback-url: http://${app.api-ip}:8081/api/biz/mbl/v1/kt/meMblPage
+
+        # 수신거부상태전송 : BC-AG-SN-014
+        refuse-rcv: http://${app.api-ip}:8081/api/ens/kt/v1/receive/refuse
+        # 수신동의상태전송 : BC-AG-SN-015
+        approve-rcv: http://${app.api-ip}:8081/api/ens/kt/v1/receive/approve

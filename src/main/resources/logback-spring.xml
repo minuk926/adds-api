@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+	<include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+	<include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+	<conversionRule conversionWord="clr" converterClass="org.springframework.boot.logging.logback.ColorConverter" />
+	<conversionRule conversionWord="wex" converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter" />
+	<conversionRule conversionWord="wEx" converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter" />
+
+	<!--
+	logback-spring.xml 로 설정시 스프링의 환경변수를 로그백 시스템 환경변수로 사용
+	logging.file.name => LOG_FILE, logging.file.path => LOG_PATH
+	logging.charset.console / file => CONSOLE_LOG_CHARSET, FILE_LOG_CHARSET
+	-->
+
+	<!-- async rolling appender 사용시 로그의 class, method, line number 출력 제어 : 성능저하 이슈 -->
+	<springProfile name="local, dev">
+		<property name="isIncludeCallerData" value="true"/>
+	</springProfile>
+	<springProfile name="prod">
+		<property name="isIncludeCallerData" value="false"/>
+	</springProfile>
+
+	<!-- ============================================================================= -->
+	<!-- console logging Appender defined -->
+	<!-- ============================================================================= -->
+	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+		<!-- 기본 출력 로그 제거 -->
+		<Filter class="kr.xit.core.support.logback.ExcludeLogFilter"/>
+		<encoder>
+			<pattern>${CONSOLE_LOG_PATTERN}</pattern>
+			<charset>${CONSOLE_LOG_CHARSET}</charset>
+		</encoder>
+	</appender>
+	<!-- ============================================================================= -->
+
+	<!-- ============================================================================= -->
+	<!-- file logging Appender defined -->
+	<!-- ============================================================================= -->
+	<appender name="ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${LOG_PATH}/${LOG_FILE}.log</file>
+		<filter class="ch.qos.logback.classic.filter.LevelFilter">
+			<level>DEBUG</level>
+			<onMatch>ACCEPT</onMatch>
+			<!-- 다른 수준의 레벨은 기록하지 않는다.(상위 레벨도 기록 안함), 상위 수준의 레벨에 대한 기록을 원하면 ACCEPT 로 하면 기록된다. -->
+			<onMismatch>ACCEPT</onMismatch>
+		</filter>
+		<!-- 기본 출력 로그 제거 -->
+		<!--Filter class="kr.xit.core.support.logback.ExcludeLogFilter"/-->
+
+		<encoder>
+			<pattern>${FILE_LOG_PATTERN}</pattern>
+			<charset>${FILE_LOG_CHARSET}</charset>
+		</encoder>
+
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_PATH}/backup/${LOG_FILE}_%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>30MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+			<maxHistory>50</maxHistory>
+		</rollingPolicy>
+	</appender>
+
+	<!-- async appender defined -->
+	<!-- includeCallerData=true -->
+	<appender name="ASYNC_ROLLING" class="ch.qos.logback.classic.AsyncAppender">
+		<appender-ref ref="ROLLING"/>
+		<!-- blocking queue의 최대 수용 갯수로 기본값은 256 -->
+		<queueSize>2048</queueSize>
+		<discardingThreshold>20</discardingThreshold>
+		<!-- 해당 시간안에 처리하지 못한 이벤트는 삭제 : 단위 - ms -->
+		<maxFlushTime>6000</maxFlushTime>
+		<!--큐가 가득찬 상황에서 메세지 유실을 방지하기 위해 application block 할지 여부 -->
+		<!-- true로 설정된 경우 application을 멈추지 않기 위해 메세지를 버린다 -->
+		<neverBlock>true</neverBlock>
+		<!-- 메소드명, 라인번호 출력 : 성능저하 요인 -->
+		<includeCallerData>${isIncludeCallerData}</includeCallerData>
+
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>DEBUG</level>
+		</filter>
+	</appender>
+	<!-- ============================================================================= -->
+
+	<!-- ============================================================================= -->
+	<!-- logging mask defined -->
+	<!-- ============================================================================= -->
+	<appender name="mask" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+			<layout class="kr.xit.core.support.logback.LogbackMaskingPatternLayout">
+				<maskPattern>\"juminId\"\s*:\s*\"(.*?)\"</maskPattern> <!-- SSN JSON pattern -->
+				<maskPattern>\"recveJuminno\"\s*:\s*\"(.*?)\"</maskPattern> <!-- SSN JSON pattern -->
+				<maskPattern>\"recevAddr\"\s*:\s*\"(.*?)\"</maskPattern> <!-- Address JSON pattern -->
+				<maskPattern>\"recevDetailAddr\"\s*:\s*\"(.*?)\"</maskPattern> <!-- Address JSON pattern -->
+				<pattern>%-5p [%d{ISO8601,UTC}] [%thread] %c: %m%n%rootException</pattern>
+			</layout>
+		</encoder>
+	</appender>
+	<!-- ============================================================================= -->
+
+	<!-- ************************************************************************* -->
+	<!-- SQL log : root appender로 로그 전파 - additivity="true" -->
+	<!-- ************************************************************************* -->
+	<!-- DB transaction -->
+	<logger name="org.mybatis.spring.SqlSessionUtils" level="DEBUG" />
+	<!-- log4jdbc 옵션 설정 -->
+	<logger name="jdbc" level="OFF"/>
+
+	<springProfile name="prod">
+		<!-- 운영 환경에서만 sql문 및 결과 출력하지 않음 -->
+		<!-- SQL문과 소요된 시간 -->
+		<logger name="jdbc.sqltiming" level="OFF"/>
+		<!-- SQL 결과 조회된 데이터를 table 형식으로 출력 -->
+		<logger name="jdbc.resultsettable" level="OFF"/>
+	</springProfile>
+
+	<springProfile name="local, dev">
+		<!-- 로컬, 개발 환경에서는 sql문 및 결과 출력 -->
+		<!-- SQL문과 소요된 시간 -->
+		<logger name="jdbc.sqltiming" level="DEBUG" />
+		<!-- SQL 결과 조회된 데이터를 table 형식으로 출력 -->
+		<logger name="jdbc.resultsettable" level="DEBUG" />
+	</springProfile>
+
+	<!-- SQL문 출력 -->
+	<logger name="jdbc.sqlonly" level="OFF"/>
+	<!-- result를 포함한 모든 JDBC 호출 정보 -->
+	<logger name="jdbc.resultset" level="OFF"/>
+	<!-- DB connection open/close -->
+	<logger name="jdbc.connection" level="OFF"/>
+	<!-- resultset을 제외한 JDBC 호출 정보 -->
+	<logger name="jdbc.audit" level="OFF"/>
+	<logger name="org.mariadb.jdbc" level="ERROR"/>
+
+	<!-- DB Connection Pool 관련 -->
+	<logger name="com.zaxxer.hikari.pool.PoolBase" level="ERROR" />
+	<logger name="com.zaxxer.hikari.pool.HikariPool" level="ERROR" />
+	<logger name="com.zaxxer.hikari.HikariDataSource" level="ERROR" />
+	<!-- ************************************************************************* -->
+	<!-- SQL log -->
+	<!-- ************************************************************************* -->
+
+	<!-- ************************************************************************* -->
+	<!-- spring / 3rdparty log : root appender로 로그 전파 - additivity="true" -->
+	<!-- ************************************************************************* -->
+	<logger name="io.swagger.v3.core.converter" level="INFO"/>
+	<logger name="org.egovframe.rte.fdl.cmmn.exception.manager" level="INFO"/>
+	<logger name="org.egovframe.rte.fdl.cmmn.aspect.ExceptionTransfer" level="INFO"/>
+	<logger name="org.egovframe" level="ERROR"/>
+	<logger name="org.apache.commons" level="INFO"/>
+	<logger name="com.zaxxer.hikari.pool.HikariPool" level="INFO"/>
+	<!-- ************************************************************************* -->
+	<!-- spring / 3rdparty log -->
+	<!-- ************************************************************************* -->
+
+
+	<!-- ************************************************************************* -->
+	<!-- application log : root appender로 로그 전파 - additivity="true" -->
+	<!-- ************************************************************************* -->
+<!--	<logger name="org.springframework.web.filter.MustRequestLoggingFilter" level="DEBUG" additivity="false"/>-->
+	<!--logger name="kr.xit.core.filter.CustomRequestLoggingFilter" level="DEBUG"/-->
+	<logger name="kr.xit" level="DEBUG"/>
+	<!-- ************************************************************************* -->
+	<!-- application log -->
+	<!-- ************************************************************************* -->
+
+
+	<!-- ************************************************************************* -->
+	<!-- root logging -->
+	<!-- ************************************************************************* -->
+	<root level="DEBUG">
+		<springProfile name="prod">
+			<appender-ref ref="ASYNC_ROLLING"/>
+		</springProfile>
+
+		<springProfile name="local, dev">
+			<appender-ref ref="CONSOLE"/>
+			<appender-ref ref="ASYNC_ROLLING"/>
+		</springProfile>
+	</root>
+
+</configuration>
